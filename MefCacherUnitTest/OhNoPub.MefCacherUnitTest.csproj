@@ -51,6 +51,7 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="AssemblyCatalogVersionSourceUnitTest.cs" />
     <Compile Include="CachingCatalogUnitTest.cs" />
     <Compile Include="ConstantCatalogVersionSourceUnitTests.cs" />
     <Compile Include="InterceptingCatalog.cs" />

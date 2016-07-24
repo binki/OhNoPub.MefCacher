@@ -42,6 +42,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AssemblyCatalogVersionSource.cs" />
     <Compile Include="CachingCatalog.cs" />
     <Compile Include="ComposablePartDefinitionExtensions.cs" />
     <Compile Include="ConstantCatalogVersionSource.cs" />
