@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace OhNoPub.MefCacher
 {
@@ -22,7 +20,16 @@ namespace OhNoPub.MefCacher
 
         public Stream GetReadStream(string expectedVersion, out string version)
         {
-            var stream = File.OpenRead(Filename);
+            Stream stream;
+            try
+            {
+                stream = File.OpenRead(Filename);
+            }
+            catch (FileNotFoundException)
+            {
+                version = null;
+                return null;
+            }
             try
             {
                 // Read the magic.

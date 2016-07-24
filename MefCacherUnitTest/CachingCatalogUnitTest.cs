@@ -3,11 +3,9 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using OhNoPub.MefCacher;
 using System.ComponentModel.Composition.Hosting;
 using OhNoPub.MefCacherUnitTest.Parts;
-using System.ComponentModel.Composition;
-using System.Collections.Generic;
 using System.Linq;
 using System.ComponentModel.Composition.Primitives;
-using System.Diagnostics;
+using System.IO;
 
 namespace OhNoPub.MefCacherUnitTest
 {
@@ -18,12 +16,25 @@ namespace OhNoPub.MefCacherUnitTest
         public void Functionality_TypeCatalog_MemoryCache() => TypeCatalogAssert(
             new MemoryPartCache(),
             instantiationShouldQueryLower: false);
+
         [TestMethod]
         public void Functionality_TypeCatalog_SerializingCache() => TypeCatalogAssert(
             new SerializingStoringPartCache(
                 new MemoryStreamCacheStorage(),
                 new SimplePartSerializer()),
             instantiationShouldQueryLower: true);
+
+        [TestMethod]
+        public void Functionality_TypeCatalog_SerializingCache_FileCacheStorage()
+        {
+            var filename = "asdf.mefcache";
+            File.Delete(filename);
+            TypeCatalogAssert(
+                new SerializingStoringPartCache(
+                    new FileCacheStorage(filename),
+                    new SimplePartSerializer()),
+                instantiationShouldQueryLower: true);
+        }
 
         class Things
         {
