@@ -6,6 +6,8 @@ using OhNoPub.MefCacherUnitTest.Parts;
 using System.ComponentModel.Composition;
 using System.Collections.Generic;
 using System.Linq;
+using System.ComponentModel.Composition.Primitives;
+using System.Diagnostics;
 
 namespace OhNoPub.MefCacherUnitTest
 {
@@ -34,9 +36,11 @@ namespace OhNoPub.MefCacherUnitTest
 
         void UseThings(
             IPartCache cache,
-            Action<Things> action)
+            Action<Things> action,
+            Func<ComposablePartCatalog> underlyingCatalogBuilder = null)
         {
-            using (var underlyingCatalog = new TypeCatalog(typeof(PartA), typeof(PartB)))
+            underlyingCatalogBuilder = underlyingCatalogBuilder ?? (() => new TypeCatalog(typeof(PartA), typeof(PartB), typeof(SharedInterfaceA), typeof(SharedInterfaceB)));
+            using (var underlyingCatalog = underlyingCatalogBuilder())
             using (var interceptingUnderlyingCatalog = new InterceptingCatalog(underlyingCatalog))
             using (var cachingCatalog = new CachingCatalog(
                 interceptingUnderlyingCatalog,
@@ -55,6 +59,9 @@ namespace OhNoPub.MefCacherUnitTest
 
         void TypeCatalogAssert(IPartCache cache, bool instantiationShouldQueryLower)
         {
+            // Cache initialization: the CachingCatalog should automatically initialize
+            // the cache if it is empty. All UseThings() calls after this one reuse the
+            // cache built by this call.
             UseThings(
                 cache,
                 things =>
@@ -71,6 +78,9 @@ namespace OhNoPub.MefCacherUnitTest
                         Assert.AreNotSame(things.InitialCachingCatalogToken, things.InterceptingCachingCatalog.EnumerationToken);
                     }
                 });
+
+            // Cache usage: the cache should enable the container to *avoid* fetching from
+            // the actual catalog when instantiating parts provided by other catalogs.
             UseThings(
                 cache,
                 things =>
@@ -93,12 +103,12 @@ namespace OhNoPub.MefCacherUnitTest
                         Assert.AreNotSame(things.InitialCachingCatalogToken, things.InterceptingCachingCatalog.EnumerationToken);
                     }
                 });
-
+            
+            // Verify that instantiation actually works.
             UseThings(
                 cache,
                 things =>
                 {
-                    // Verify that instantiation actually works.
                     using (var container3 = new CompositionContainer(things.InterceptingCachingCatalog))
                     {
                         var b = container3.GetExportedValue<PartB>();
@@ -117,15 +127,40 @@ namespace OhNoPub.MefCacherUnitTest
                         Assert.AreNotSame(things.InitialCachingCatalogToken, things.InterceptingCachingCatalog.EnumerationToken);
                     }
                 });
-        }
 
-        [Export]
-        class ImportsManyNonexistent
-        {
-            [ImportMany]
-            public IEnumerable<NonExportedPart> ShouldBeEmpty { get; set; }
+            // Verify that metadata is basically supported.
+            UseThings(
+                cache,
+                action: things =>
+                {
+                    using (var typeCatalog = new TypeCatalog(typeof(ImportsSharedInterface)))
+                    using (var aggregateCatalog = new AggregateCatalog(typeCatalog, things.InterceptingCachingCatalog))
+                    using (var container = new CompositionContainer(aggregateCatalog))
+                    {
+                        Console.WriteLine($"mark");
+                        var importsSharedInterface = container.GetExportedValue<ImportsSharedInterface>();
+                        Assert.IsNotNull(importsSharedInterface);
+                        Assert.IsNotNull(importsSharedInterface.Things);
 
-            public class NonExportedPart { }
+                        // Inspecting metadata should query the cache but not the underlying catalog.
+                        foreach (var m in from lt in importsSharedInterface.Things select lt.Metadata)
+                            Console.WriteLine($"{new { m.Key, m.Weight, }}");
+                        var lazySharedInterfaceA = importsSharedInterface.Things.Single(lt => lt.Metadata.Key == "A");
+                        Assert.AreEqual(25, lazySharedInterfaceA.Metadata.Weight, "weight");
+                        Assert.AreSame(things.InitialUnderlyingCatalogToken, things.InterceptingUnderlyingCatalog.EnumerationToken);
+                        Assert.AreNotSame(things.InitialCachingCatalogToken, things.InterceptingCachingCatalog.EnumerationToken);
+                        things.InitialCachingCatalogToken = things.InterceptingCachingCatalog.EnumerationToken;
+
+                        // Instantiating should access just the underlying because it doesn’t need
+                        // to reenumerate parts after getting a handle.
+                        var sharedInterfaceA = lazySharedInterfaceA.Value;
+                        if (instantiationShouldQueryLower)
+                            Assert.AreNotSame(things.InitialUnderlyingCatalogToken, things.InterceptingUnderlyingCatalog.EnumerationToken);
+                        else // Our “MemoryPartCache” is so unrealistic.
+                            Assert.AreSame(things.InitialUnderlyingCatalogToken, things.InterceptingUnderlyingCatalog.EnumerationToken);
+                        Assert.AreSame(things.InitialCachingCatalogToken, things.InterceptingCachingCatalog.EnumerationToken);
+                    }
+                });
         }
     }
 }

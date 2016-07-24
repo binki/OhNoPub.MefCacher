@@ -7,11 +7,7 @@ using System.ComponentModel.Composition.Primitives;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace OhNoPub.MefCacher
 {
@@ -258,7 +254,15 @@ namespace OhNoPub.MefCacher
             : ComposablePart
         {
             UnserializedComposablePartDefinition Definition { get; }
-            ComposablePart RealPart { get; }
+
+	    // The composer instantiates ComposablePart before it
+	    // needs to instantiate the object. It seems that
+	    // CacherComposablePart becomes alive around when the
+	    // Lazy<T, TMetadata> appears. So we need to defer loading
+	    // yet a little longer to support metadata-based prat
+	    // avoidance.
+            Lazy<ComposablePart> LazyRealPart { get; }
+            ComposablePart RealPart => LazyRealPart.Value;
 
             public override IEnumerable<ExportDefinition> ExportDefinitions => Definition.ExportDefinitions;
 
@@ -269,7 +273,8 @@ namespace OhNoPub.MefCacher
                 UnserializedComposablePartDefinition definition)
             {
                 Definition = definition;
-                RealPart = definition.LazyRealComposablePartDefinition.Value.CreatePart();
+                LazyRealPart = new Lazy<ComposablePart>(
+                    () => Definition.LazyRealComposablePartDefinition.Value.CreatePart());
             }
 
             public override void Activate()

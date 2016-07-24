@@ -57,8 +57,14 @@
     <Compile Include="MemoryStreamCacheStorage.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Parts\ImportsManyNonexistent.cs" />
+    <Compile Include="Parts\ImportsSharedInterface.cs" />
+    <Compile Include="Parts\ISharedInterface.cs" />
+    <Compile Include="Parts\ISharedInterfaceMetadata.cs" />
     <Compile Include="Parts\PartA.cs" />
     <Compile Include="Parts\PartB.cs" />
+    <Compile Include="Parts\SharedInterfaceA.cs" />
+    <Compile Include="Parts\SharedInterfaceB.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
