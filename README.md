@@ -1,3 +1,5 @@
+[![Build status](https://ci.appveyor.com/api/projects/status/fcqvbm756p7ojhy0?svg=true)](https://ci.appveyor.com/project/binki/ohnopub-mefcacher)
+
 There are two goals to this project:
 
 1. Enable the most general and declarative MEF usage pattern (i.e., using [`ApplicationCatalog`](https://msdn.microsoft.com/en-us/library/system.componentmodel.composition.hosting.applicationcatalog%28v=vs.110%29.aspx)).
