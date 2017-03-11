@@ -8,15 +8,15 @@ There are two goals to this project:
 
 2. Enable fast startup and initial composition.
    For MEF to compose a part with any imports, it needs to scan the entire catalog for parts to verify that the cardinality of the import is being respected.
-   This defeats the frameworkís optimization of lazily loading assemblies and causes a noticable and unacceptable slowdown in program initialization, especially when allowing all assemblies in an application to contribute parts.
+   This defeats the frameworkÁó¥ optimization of lazily loading assemblies and causes a noticable and unacceptable slowdown in program initialization, especially when allowing all assemblies in an application to contribute parts.
 
-MEFís catalogs allow a separation between a part instance and its definition.
+MEFÁó¥ catalogs allow a separation between a part instance and its definition.
 It should be possible to just feed MEF the part definitions necessary for it to validate cardinality constraints and decide which parts actually need to be activated.
 This way, assembly loading can be deferred using a lazy pattern until parts are actually needed in a manner similar to how .net lazily loads assemblies.
 If this is done, initial composition can be made responsive while still allowing a general catalog without need for manual tuning/specialization.
 
 The design of `CachingCatalog` supports automatic cache rebuilding and initialization.
-The idea is that you can detect that a particular assembly has changed without fully loading itóperhaps using filesystem-provided metadata such as mtime.
+The idea is that you can detect that a particular assembly has changed without fully loading itÁî®erhaps using filesystem-provided metadata such as mtime.
 During normal application use, the assembly would be stable.
 Thus, the program would build the cache on the first run and use it in subsequent runs.
 Or perhaps the cache can be prepopulated before distribution of the program.
@@ -53,8 +53,8 @@ The pattern I personally recommend is:
         }
     }
 
-AndÅc that is the vision.
+And‚Ä¶ that is the vision.
 It does not work quite so far yet.
 This repository however has a few test cases and some of the necessary scaffolding to support the future API.
 It might even almost be to the point of being interesting.
-Thus IÅfm sharing it ^^.
+Thus I‚Äôm sharing it ^^.
