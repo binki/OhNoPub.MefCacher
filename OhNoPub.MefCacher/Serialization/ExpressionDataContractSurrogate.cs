@@ -87,7 +87,14 @@ namespace OhNoPub.MefCacher.Serialization
             }
         }
 
-        [DataContract]
+        /// <remarks>
+        ///   <para>
+        ///     Setting <see cref="DataContractAttribute.IsReference"/> because expressions
+        ///     referring to variables need to have the same instance for all references
+        ///     to a variable. E.g., parameter and accessing parameter.
+        ///   </para>
+        /// </remarks>
+        [DataContract(IsReference = true)]
         class Expr
         {
             [DataMember]
@@ -133,11 +140,14 @@ namespace OhNoPub.MefCacher.Serialization
                 switch (Type)
                 {
                     case ExpressionType.Add: return Expression.Add(Exprs[0], Exprs[1]);
+                    case ExpressionType.AddAssign: return Expression.AddAssign(Exprs[0], Exprs[1], null, (LambdaExpression)Exprs[2]);
+                    case ExpressionType.AddAssignChecked: return Expression.AddAssignChecked(Exprs[0], Exprs[1], null, (LambdaExpression)Exprs[2]);
                     case ExpressionType.AddChecked: return Expression.AddChecked(Exprs[0], Exprs[1]);
                     case ExpressionType.And: return Expression.And(Exprs[0], Exprs[1]);
                     case ExpressionType.AndAlso:return Expression.AndAlso(Exprs[0], Exprs[1]);
                     case ExpressionType.ArrayLength:
                         break;
+                    case ExpressionType.Assign: return Expression.Assign(Exprs[0], Exprs[1]);
                     case ExpressionType.ArrayIndex:
                         break;
                     case ExpressionType.Block: return Expression.Block(T[0], parameterExpressions, Exprs);
@@ -204,8 +214,7 @@ namespace OhNoPub.MefCacher.Serialization
                         break;
                     case ExpressionType.OrElse:
                         break;
-                    case ExpressionType.Parameter:
-                        break;
+                    case ExpressionType.Parameter: return Expression.Parameter(T[0], S[0]);
                     case ExpressionType.Power:
                         break;
                     case ExpressionType.Quote:
@@ -219,8 +228,6 @@ namespace OhNoPub.MefCacher.Serialization
                     case ExpressionType.TypeAs:
                         break;
                     case ExpressionType.TypeIs:
-                        break;
-                    case ExpressionType.Assign:
                         break;
                     case ExpressionType.DebugInfo:
                         break;
@@ -252,8 +259,6 @@ namespace OhNoPub.MefCacher.Serialization
                         break;
                     case ExpressionType.Unbox:
                         break;
-                    case ExpressionType.AddAssign:
-                        break;
                     case ExpressionType.AndAssign:
                         break;
                     case ExpressionType.DivideAssign:
@@ -273,8 +278,6 @@ namespace OhNoPub.MefCacher.Serialization
                     case ExpressionType.RightShiftAssign:
                         break;
                     case ExpressionType.SubtractAssign:
-                        break;
-                    case ExpressionType.AddAssignChecked:
                         break;
                     case ExpressionType.MultiplyAssignChecked:
                         break;
@@ -308,15 +311,27 @@ namespace OhNoPub.MefCacher.Serialization
                 switch (expression.NodeType)
                 {
                     case ExpressionType.Add:
+                    case ExpressionType.AddAssign:
+                    case ExpressionType.AddAssignChecked:
                     case ExpressionType.AddChecked:
+                    case ExpressionType.Assign:
                     case ExpressionType.And:
                     case ExpressionType.AndAlso:
                     case ExpressionType.Divide:
                     case ExpressionType.Subtract:
                     case ExpressionType.SubtractChecked:
-                        var binaryExpression = (BinaryExpression)expression;
-                        if (binaryExpression.Method != null) throw new NotImplementedException("Non built-in binary expression not supported");
-                        return new Expr(expression.NodeType, new[] { binaryExpression.Left, binaryExpression.Right, });
+                        {
+                            var binaryExpression = (BinaryExpression)expression;
+                            if (binaryExpression.Method != null) throw new NotImplementedException("Non built-in binary expression not supported");
+                            switch (expression.NodeType)
+                            {
+                                case ExpressionType.AddAssign:
+                                case ExpressionType.AddAssignChecked:
+                                    return new Expr(expression.NodeType, new[] { binaryExpression.Left, binaryExpression.Right, binaryExpression.Conversion, });
+                            }
+                            if (binaryExpression.Conversion != null) throw new InvalidOperationException($"{nameof(ExpressionType)} {expression.NodeType} may not have a non-null {nameof(BinaryExpression)}.{nameof(BinaryExpression.Conversion)} property.");
+                            return new Expr(expression.NodeType, new[] { binaryExpression.Left, binaryExpression.Right, });
+                        }
                     case ExpressionType.ArrayLength:
                         break;
                     case ExpressionType.ArrayIndex:
@@ -387,7 +402,8 @@ namespace OhNoPub.MefCacher.Serialization
                     case ExpressionType.OrElse:
                         break;
                     case ExpressionType.Parameter:
-                        break;
+                        var parameterExpression = (ParameterExpression)expression;
+                        return new Expr(expression.NodeType, t: new[] { parameterExpression.Type }, s: new[] { parameterExpression.Name, });
                     case ExpressionType.Power:
                         break;
                     case ExpressionType.Quote:
@@ -397,8 +413,6 @@ namespace OhNoPub.MefCacher.Serialization
                     case ExpressionType.TypeAs:
                         break;
                     case ExpressionType.TypeIs:
-                        break;
-                    case ExpressionType.Assign:
                         break;
                     case ExpressionType.Block:
                         var blockExpression = (BlockExpression)expression;
@@ -433,8 +447,6 @@ namespace OhNoPub.MefCacher.Serialization
                         break;
                     case ExpressionType.Unbox:
                         break;
-                    case ExpressionType.AddAssign:
-                        break;
                     case ExpressionType.AndAssign:
                         break;
                     case ExpressionType.DivideAssign:
@@ -454,8 +466,6 @@ namespace OhNoPub.MefCacher.Serialization
                     case ExpressionType.RightShiftAssign:
                         break;
                     case ExpressionType.SubtractAssign:
-                        break;
-                    case ExpressionType.AddAssignChecked:
                         break;
                     case ExpressionType.MultiplyAssignChecked:
                         break;

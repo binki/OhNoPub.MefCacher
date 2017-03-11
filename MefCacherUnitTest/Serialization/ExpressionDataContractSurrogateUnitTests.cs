@@ -63,5 +63,92 @@ namespace OhNoPub.MefCacherUnitTest.Serialization
             Assert.AreEqual("A", exprs[0].Compile()());
             Assert.AreEqual("B", exprs[1].Compile()());
         }
+
+        [TestMethod] public void RoundtripExpression_Add() => RoundTrip(a => 2 + a, 3, 5);
+        [TestMethod]
+        public void RoundtripExpression_AddAssign()
+        {
+            var p1Expression = Expression.Parameter(typeof(int));
+            var v1Expression = Expression.Variable(typeof(int));
+            RoundTrip(
+                Expression.Lambda<Func<int, int>>(
+                    Expression.Block(
+                        new[] { v1Expression, },
+                        Expression.AddAssign(v1Expression, p1Expression),
+                        Expression.AddAssign(v1Expression, p1Expression)),
+                    p1Expression),
+                3,
+                6);
+        }
+        [TestMethod]
+        public void RoundtripExpression_AddAssignChecked()
+        {
+            var p1Expression = Expression.Parameter(typeof(int));
+            var v1Expression = Expression.Variable(typeof(int));
+            UsingRoundtrippedValue(
+                Expression.Lambda<Func<int, int>>(
+                    Expression.Block(
+                        new[] { v1Expression, },
+                        Expression.Assign(v1Expression, Expression.Constant(int.MaxValue)),
+                        Expression.AddAssignChecked(v1Expression, p1Expression)),
+                    p1Expression),
+                expression =>
+                {
+                    var f = expression.Compile();
+                    f(0);
+                    {
+                        var thrown = false;
+                        try
+                        {
+                            f(1);
+                        }
+                        catch (OverflowException)
+                        {
+                            thrown = true;
+                        }
+                        Assert.IsTrue(thrown, "Expected checked expression.");
+                    }
+                });
+        }
+
+        void UsingRoundtrippedValue<T>(
+            T value,
+            Action<T> action)
+        {
+            action(
+                new DataContractSerializerWrapper<T>(
+                    new DataContractSerializerSettings()
+                    .Apply(
+                        new ExpressionDataContractSurrogate(),
+                        new TypeDataContractSurrogate()))
+                .Roundtrip(value));
+        }
+
+        void RoundTrip<TResult>(
+            Expression<Func<TResult>> expression,
+            TResult expectedResult)
+        {
+            UsingRoundtrippedValue(
+                expression,
+                e => Assert.AreEqual(
+                    expectedResult,
+                    e
+                    .Compile()
+                    ()));
+        }
+
+        void RoundTrip<T, TResult>(
+            Expression<Func<T, TResult>> expression,
+            T p,
+            TResult expectedResult)
+        {
+            UsingRoundtrippedValue(
+                expression,
+                e => Assert.AreEqual(
+                    expectedResult,
+                    e
+                    .Compile()
+                    (p)));
+        }
     }
 }
