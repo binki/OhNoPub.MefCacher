@@ -53,8 +53,8 @@ The pattern I personally recommend is:
         }
     }
 
-AndÅEthat is the vision.
+AndÅc that is the vision.
 It does not work quite so far yet.
 This repository however has a few test cases and some of the necessary scaffolding to support the future API.
 It might even almost be to the point of being interesting.
-Thus Iím sharing it ^^.
+Thus IÅfm sharing it ^^.
