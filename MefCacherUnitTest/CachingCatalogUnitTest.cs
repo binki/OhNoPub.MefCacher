@@ -50,7 +50,13 @@ namespace OhNoPub.MefCacherUnitTest
             Action<Things> action,
             Func<ComposablePartCatalog> underlyingCatalogBuilder = null)
         {
-            underlyingCatalogBuilder = underlyingCatalogBuilder ?? (() => new TypeCatalog(typeof(PartA), typeof(PartB), typeof(SharedInterfaceA), typeof(SharedInterfaceB)));
+            underlyingCatalogBuilder = underlyingCatalogBuilder ?? (() => new TypeCatalog(
+                typeof(PartA),
+                typeof(PartB),
+                typeof(SharedInterfaceA),
+                typeof(SharedInterfaceB),
+                typeof(GenericContractPartA),
+                typeof(GenericImportingPart)));
             using (var underlyingCatalog = underlyingCatalogBuilder())
             using (var interceptingUnderlyingCatalog = new InterceptingCatalog(underlyingCatalog))
             using (var cachingCatalog = new CachingCatalog(

@@ -37,6 +37,8 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Xml" />
   </ItemGroup>
   <Choose>
     <When Condition="('$(VisualStudioVersion)' == '10.0' or '$(VisualStudioVersion)' == '') and '$(TargetFrameworkVersion)' == 'v3.5'">
@@ -53,11 +55,15 @@
   <ItemGroup>
     <Compile Include="AssemblyCatalogVersionSourceUnitTest.cs" />
     <Compile Include="CachingCatalogUnitTest.cs" />
+    <Compile Include="ComponentModel\Composition\Primitives\SimpleComposablePartDefinition.cs" />
     <Compile Include="ConstantCatalogVersionSourceUnitTests.cs" />
     <Compile Include="InterceptingCatalog.cs" />
     <Compile Include="MemoryStreamCacheStorage.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Parts\GenericContractPartA.cs" />
+    <Compile Include="Parts\GenericImportingPart.cs" />
+    <Compile Include="Parts\IGenericContract.cs" />
     <Compile Include="Parts\ImportsManyNonexistent.cs" />
     <Compile Include="Parts\ImportsSharedInterface.cs" />
     <Compile Include="Parts\ISharedInterface.cs" />
@@ -67,6 +73,11 @@
     <Compile Include="Parts\SharedInterfaceA.cs" />
     <Compile Include="Parts\SharedInterfaceB.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Runtime\Serialization\DataContractSerializerUnitTests.cs" />
+    <Compile Include="Serialization\DataContractSerializerWrapper.cs" />
+    <Compile Include="Serialization\ExpressionDataContractSurrogateUnitTests.cs" />
+    <Compile Include="Serialization\TypeDataContractSurrogateUnitTests.cs" />
+    <Compile Include="SimplePartSerializerUnitTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\OhNoPub.MefCacher\OhNoPub.MefCacher.csproj">

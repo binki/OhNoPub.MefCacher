@@ -51,8 +51,15 @@
     <Compile Include="ICatalogVersionSource.cs" />
     <Compile Include="IPartCache.cs" />
     <Compile Include="IPartSerializer.cs" />
+    <Compile Include="LazyType.cs" />
     <Compile Include="MemoryPartCache.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Serialization\DataContractSerializerSettingsExtensions.cs" />
+    <Compile Include="Serialization\IInfoDataContractSurrogate.cs" />
+    <Compile Include="Serialization\TypeReplacingDataContractSurrogate.cs" />
+    <Compile Include="Serialization\ExpressionDataContractSurrogate.cs" />
+    <Compile Include="Serialization\AggregatingDataContractSurrogate.cs" />
+    <Compile Include="Serialization\TypeDataContractSurrogate.cs" />
     <Compile Include="SerializingStoringPartCache.cs" />
     <Compile Include="SimplePartSerializer.cs" />
   </ItemGroup>

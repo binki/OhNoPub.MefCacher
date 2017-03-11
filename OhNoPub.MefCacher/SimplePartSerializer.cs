@@ -1,4 +1,5 @@
-﻿using System;
+﻿using OhNoPub.MefCacher.Serialization;
+using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -14,7 +15,12 @@ namespace OhNoPub.MefCacher
     public class SimplePartSerializer
         : IPartSerializer
     {
-        DataContractSerializer Serializer { get; } = new DataContractSerializer(typeof(SUniverse));
+        DataContractSerializer Serializer { get; } = new DataContractSerializer(
+            typeof(SUniverse),
+            new DataContractSerializerSettings()
+            .Apply(
+                new TypeDataContractSurrogate(),
+                new ExpressionDataContractSurrogate()));
         public Stream Stream { get; set; }
 
         public IEnumerable<ComposablePartDefinition> Deserialize(
@@ -309,6 +315,13 @@ namespace OhNoPub.MefCacher
                 var realDefinition = unserializedImportDefinition.LazyUnderlyingImportDefinition.Value;
                 RealPart.SetImport(realDefinition, exports);
             }
+        }
+
+        [DataContract]
+        class TypePlaceholder
+        {
+            [DataMember]
+            public string AssemblyQualifiedName { get; set; }
         }
 
         internal class SignatureLookup<T>
